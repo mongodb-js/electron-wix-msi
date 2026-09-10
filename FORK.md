@@ -87,7 +87,8 @@ is set, and Go's `LookPath` does not consult `App Paths`. So `binPath()` returns
 > `did not find MongoDB Compass, install: https://dochub.mongodb.org/core/install-compass`
 
 on a machine where Compass is installed. This breakage is user-visible and
-would not be caught by any test in the Compass repo.
+would not be caught by any test in the Compass repo; see [§3](#3-who-consumes-this-package) for the exact
+coverage boundary.
 
 (Incidentally, this key is written by the `.msi` only. Squirrel `.exe`
 installations have never written it, so the Atlas CLI already fails to locate
@@ -126,7 +127,7 @@ by publishing to npm and rebuilding Compass. There are no pull requests, no
 Jira tickets, and no review on any of them.
 
 **The commit messages record failed attempts, not design intent.** Reading them
-as a description of the current behaviour will mislead; the diff in §2 is
+as a description of the current behaviour will mislead; the diff in [§2](#2-what-this-fork-changes) is
 authoritative.
 
 ---
@@ -176,7 +177,7 @@ smoke tests read `InstallLocation` from the standard Windows Uninstall key
 ### MongoDB Atlas CLI
 
 `mongodb-atlas-cli/internal/compass/compass_bin_windows.go` reads
-`HKLM\SOFTWARE\MongoDB\MongoDB Compass` → `Directory`, as described in §1.3.
+`HKLM\SOFTWARE\MongoDB\MongoDB Compass` → `Directory`, as described in [§1.3](#13-the-reason-the-fork-is-still-load-bearing-today).
 
 **This dependency is undeclared.** It does not appear in any `package.json` or
 `go.mod` relationship; it is a coupling through the Windows registry only.
@@ -185,7 +186,47 @@ change for a repository that has no visible dependency on this one.
 
 ### Not the MongoDB Server
 
-The Server installer downloads and runs the Squirrel `.exe`; see §1.1.
+The Server installer downloads and runs the Squirrel `.exe`; see [§1.1](#11-the-original-motivation-which-no-longer-applies).
+
+### What Compass CI does and does not verify
+
+Compass runs the MSI through a real install on Windows.
+`.github/workflows/test-installers.yml` includes a `windows_msi` entry running
+on `windows-latest` for the `time-to-first-query` and `auto-update-from` tests
+across all three distributions (`auto-update-to` is excluded for this package).
+`packages/compass-smoke-tests/src/installers/windows-msi.ts` performs an
+`msiexec /package` install and then runs the end-to-end suite against the
+installed application.
+
+Consequently, CI **does** catch:
+
+- a `light.exe` failure during packaging;
+- an MSI that fails to install;
+- a missing application executable after install;
+- an application that cannot launch or run a query;
+- a broken update-from-this-version path.
+
+CI **does not** catch:
+
+- **Any change to the registry values this package writes.** The MSI installer
+  helper makes no registry call. `windows-registry.ts` is imported only by
+  `windows-setup.ts` (the Squirrel `.exe`) and queries the standard Uninstall
+  key, never `Software\MongoDB\MongoDB Compass`. Removing or renaming the
+  `ApplicationInstallLocation` component of change #2 leaves the entire Windows
+  matrix green while breaking the Atlas CLI consumer described above.
+- **Behaviour at the default install location.** The test passes
+  `APPLICATIONROOTDIRECTORY=${sandboxPath}` explicitly, so `Program Files` is
+  never used, and `/passive` bypasses the `chooseDirectory` UI. Anything
+  specific to the default path or to a user-selected path — including directory
+  permissions — is unexercised.
+- **Uninstall behaviour.** `uninstall()` is invoked in a `finally` block, but
+  nothing asserts what it removed, so the orphaned-folder cleanup of change #3
+  has no coverage.
+- **The Start Menu shortcut** and the `shortcutFolderName` it is filed under.
+
+The coverage boundary is therefore that CI verifies the installer *works*, not
+what the installer *writes*. The one property this fork exists to provide —
+the registry layout of [§1.3](#13-the-reason-the-fork-is-still-load-bearing-today) — is the property with no test behind it.
 
 ---
 
@@ -239,7 +280,7 @@ upstream and this fork:
 - There is no build or publish automation. Releases have historically been made by hand with `npm version` followed by `npm publish`.
 - The test suite is not run on `master` by any CI workflow in this repository. The `.travis.yml` and AppVeyor badges inherited from upstream are not connected to anything.
 - The repository was archived and was unarchived on 2026-09-09.
-- `README.md` is upstream's, describing upstream's API. It does not document any of the differences in §2, and describes options (`features`, `associateExtensions`, `lightSwitches`, and others) that do not exist in this fork.
+- `README.md` is upstream's, describing upstream's API. It does not document any of the differences in [§2](#2-what-this-fork-changes), and describes options (`features`, `associateExtensions`, `lightSwitches`, and others) that do not exist in this fork.
 
 ---
 
