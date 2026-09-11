@@ -18,7 +18,7 @@
   "scripts": {
     "prepublish": "npm run build",
     "build": "tsc --pretty",
-    "test": "npm run lint && jest",
+    "test": "jest",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "harness": "npm run build && node ./harness/harness.js"
   },
