@@ -5,9 +5,7 @@
 > and describes options this fork does not have. See [FORK.md](./FORK.md) for
 > why the fork exists, what it changes, and who depends on it.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/s54pty8rve3yemb9?svg=true)](https://ci.appveyor.com/project/felixrieseberg/electron-wix-msi)
-[![Build Status](https://travis-ci.org/felixrieseberg/electron-wix-msi.svg?branch=master)](https://travis-ci.org/felixrieseberg/electron-wix-msi)
-[![Coverage Status](https://coveralls.io/repos/github/felixrieseberg/electron-wix-msi/badge.svg?branch=master)](https://coveralls.io/github/felixrieseberg/electron-wix-msi?branch=master)
+[![Check and Test](https://github.com/mongodb-js/electron-wix-msi/actions/workflows/check-test.yaml/badge.svg)](https://github.com/mongodb-js/electron-wix-msi/actions/workflows/check-test.yaml)
 ![TypeScript](https://img.shields.io/badge/typings-included-brightgreen.svg)
 
 ## Traditional MSI Installers
