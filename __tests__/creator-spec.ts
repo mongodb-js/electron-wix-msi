@@ -19,11 +19,11 @@ beforeAll(() => {
   jest.mock('child_process', () => ({
     execSync(name: string) {
       if (name === 'node -v') {
-        return new Buffer('8.0.0');
+        return '8.0.0';
       }
 
       if (name === 'light -?' || name === 'candle -?' && mockWixInstalled) {
-        return new Buffer(' version 3.11.0.1701');
+        return ' version 3.11.0.1701';
       }
 
       throw new Error('Command not found');
@@ -92,7 +92,8 @@ test('.wxs file has content', () => {
   expect(wxsContent.length).toBeGreaterThan(50);
 });
 
-testIncludes('the root element', '<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">');
+testIncludes('the root element',
+  '<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">');
 
 testIncludes('a package element', '<Package');
 
@@ -103,9 +104,9 @@ testIncludes('an ApplicationProgramsFolder', '<Directory Id="ApplicationPrograms
 testIncludes('a default appUserModelId', 'Key="System.AppUserModel.ID" Value="com.squirrel.Acme.acme"');
 
 test('.wxs file has as many components as we have files', () => {
-  // Files + Shortcut
+  // Files + Shortcut + InstallLocation
   const count = wxsContent.split('</Component>').length - 1;
-  expect(count).toEqual(numberOfFiles + 1);
+  expect(count).toEqual(numberOfFiles + 2);
 });
 
 test('MSICreator create() creates Wix file with UI properties', async () => {
