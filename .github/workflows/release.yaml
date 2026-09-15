@@ -63,10 +63,10 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Publish what is not already in NPM
+      - name: Publish to npm
         run: |
           git update-index --assume-unchanged .npmrc
-          npm run publish-packages
+          npm publish
 
       - name: Publish tag
         run: |
