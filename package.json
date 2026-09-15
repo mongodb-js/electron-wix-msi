@@ -31,7 +31,7 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@mongodb-js/monorepo-tools": "^1.5.12",
+    "@mongodb-js/monorepo-tools": "^1.6.0",
     "@types/debug": "0.0.30",
     "@types/fs-extra": "^5.0.4",
     "@types/graceful-fs": "^4.1.2",

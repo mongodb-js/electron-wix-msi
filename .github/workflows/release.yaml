@@ -3,8 +3,6 @@
 # publish-packages.yaml. The vX.Y.Z tag is pushed after a successful publish.
 #
 # Authentication is npm trusted publishing (OIDC), so there is no NPM_TOKEN.
-# The trusted publisher configured on npmjs.com names this file (release.yaml),
-# so renaming it means updating that configuration. See COMPASS-10318.
 name: Release
 
 on:
@@ -46,8 +44,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # publish exactly the commit Check and Test passed on, not whatever
-          # main points at by the time this job is dequeued
           ref: ${{ github.event.workflow_run.head_sha || 'main' }}
           token: ${{ steps.app-token.outputs.token }}
           fetch-depth: "0"
@@ -73,6 +69,4 @@ jobs:
         run: |
           version="$(node -p 'require("./package.json").version')"
           git tag -a "v${version}" -m "v${version}" || true
-          # explicit refspec: the checkout above is a detached HEAD, so there is
-          # no upstream branch for --follow-tags to push
           git push origin "refs/tags/v${version}"
