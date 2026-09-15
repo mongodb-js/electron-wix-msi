@@ -15,9 +15,13 @@
   ],
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
+  "workspaces": [
+    "."
+  ],
   "scripts": {
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "build": "tsc --pretty",
+    "bump-packages": "bump-monorepo-packages",
     "test": "jest",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "harness": "npm run build && node ./harness/harness.js"
@@ -30,6 +34,7 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
+    "@mongodb-js/monorepo-tools": "^1.5.12",
     "@types/debug": "0.0.30",
     "@types/fs-extra": "^5.0.4",
     "@types/graceful-fs": "^4.1.2",
