@@ -1,4 +1,5 @@
-import childProcess from 'child_process';
+import type { SpawnOptions } from 'child_process';
+import { spawn } from 'child_process';
 import createDebug from 'debug';
 
 const debug = createDebug('electron-wix-msi');
@@ -20,10 +21,10 @@ export interface SpawnPromiseResult {
 export function spawnPromise(
   name: string,
   args: Array<string>,
-  options?: childProcess.SpawnOptions,
+  options?: SpawnOptions,
 ): Promise<SpawnPromiseResult> {
   return new Promise((resolve) => {
-    const fork = childProcess.spawn(name, args, options ?? {});
+    const fork = spawn(name, args, options ?? {});
 
     debug(`Spawning ${name} with ${args.join(' ')}`);
 
