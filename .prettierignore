@@ -2,8 +2,3 @@ lib
 coverage
 vendor
 package-lock.json
-
-# Docs and CI config are not part of this migration, leave them as authored.
-*.md
-.github
-.nyc_output

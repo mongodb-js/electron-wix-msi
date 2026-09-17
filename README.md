@@ -53,7 +53,7 @@ const msiCreator = new MSICreator({
   name: 'Kittens',
   manufacturer: 'Kitten Technologies',
   version: '1.1.2',
-  outputDirectory: '/path/to/output/folder'
+  outputDirectory: '/path/to/output/folder',
 });
 
 // Step 2: Create a .wxs template file
@@ -65,46 +65,46 @@ await msiCreator.compile();
 
 ### Configuration
 
-* `appDirectory` (string) - The source directory for the installer, usually the
+- `appDirectory` (string) - The source directory for the installer, usually the
   output of
   [electron-packager](https://github.com/electron-userland/electron-packager).
-* `outputDirectory` (string) - The output directory. Will contain the finished
+- `outputDirectory` (string) - The output directory. Will contain the finished
   `msi` as well as the intermediate files .`wxs` and `.wixobj`.
-* `exe` (string) - The name of the exe.
-* `description` (string) - The app's description.
-* `version` (string) - The app's version.
-* `name` (string) - The app's name.
-* `manufacturer` (string) - Name of the manufacturer.
+- `exe` (string) - The name of the exe.
+- `description` (string) - The app's description.
+- `version` (string) - The app's version.
+- `name` (string) - The app's name.
+- `manufacturer` (string) - Name of the manufacturer.
 
-* `appUserModelId` (string, optional) - String to set as `appUserModelId` on the
+- `appUserModelId` (string, optional) - String to set as `appUserModelId` on the
   shortcut. If none is passed, it'll be set to `com.squirrel.(Name).(exe)`,
   which should match the id given to your app by Squirrel.
-* `shortName` (optional, string) - A short name for the app, used wherever
+- `shortName` (optional, string) - A short name for the app, used wherever
   spaces and special characters are not allowed. Will use the name if left
   undefined.
-* `shortcutFolderName` (string, optional) - Name of the shortcut folder in the
+- `shortcutFolderName` (string, optional) - Name of the shortcut folder in the
   Windows Start Menu. Will use the manufacturer field if left undefined.
-* `shortcutName` (string, optional) - Name of the shortcut  in the
+- `shortcutName` (string, optional) - Name of the shortcut in the
   Windows Start Menu. Will use the app's name field if left undefined.
-* `programFilesFolderName` (string, optional) - Name of the folder your app will
+- `programFilesFolderName` (string, optional) - Name of the folder your app will
   live in. Will use the app's name if left undefined.
-* `upgradeCode` (string, optional) - A unique UUID used by your app to identify
+- `upgradeCode` (string, optional) - A unique UUID used by your app to identify
   itself. This module will generate one for you, but it is important to reuse it
   to enable conflict-free upgrades.
-* `language` (number, optional) - The
+- `language` (number, optional) - The
   [Microsoft Windows Language Code identifier](https://msdn.microsoft.com/en-us/library/cc233965.aspx)
   used by the installer. Will use 1033 (English, United-States) if left
   undefined.
-* `certificateFile` (string, optional) - The path to an Authenticode Code
+- `certificateFile` (string, optional) - The path to an Authenticode Code
   Signing Certificate.
-* `certificatePassword` (string, optional) - The password to decrypt the
+- `certificatePassword` (string, optional) - The password to decrypt the
   certificate given in `certificateFile`.
-* `signWithParams` (string, optional) - Paramaters to pass to `signtool.exe`.
+- `signWithParams` (string, optional) - Paramaters to pass to `signtool.exe`.
   Overrides `certificateFile` and `certificatePassword`.
-* `extensions` (array, optional) - Specify WiX extensions to use e.g `['WixUtilExtension', 'C:\My WiX Extensions\FooExtension.dll']`
-* `ui` (UIOptions, optional) - Enables configuration of the UI. See below for
+- `extensions` (array, optional) - Specify WiX extensions to use e.g `['WixUtilExtension', 'C:\My WiX Extensions\FooExtension.dll']`
+- `ui` (UIOptions, optional) - Enables configuration of the UI. See below for
   more information.
-* `arch` (string, optional) - Defines the architecure the MSI is build for. Values can
+- `arch` (string, optional) - Defines the architecure the MSI is build for. Values can
   be either `x86` or `x64`. Default's to `x86` if left undefined.
 
 ##### UI Configuration (Optional)
@@ -112,28 +112,28 @@ await msiCreator.compile();
 The `ui` property in the options passed to the installer instance allows more
 detailed configuration of the UI. It has the following optional properties:
 
-* `enabled` (boolean, optional) - Whether to show a typical user interface.
+- `enabled` (boolean, optional) - Whether to show a typical user interface.
   Defaults to `true`. If set to `false`, Windows will show a minimal "Windows is
   configuring NAME_OF_APP" interface.
-* `template` (string, optional) - Substitute your own XML that will be inserted
+- `template` (string, optional) - Substitute your own XML that will be inserted
   into the final `.wxs` file before compiling the installer to customize the UI
   options.
-* `chooseDirectory` (boolean, optional) - If set to `true`, the end user will be
+- `chooseDirectory` (boolean, optional) - If set to `true`, the end user will be
   able to choose the installation directory. Set to `false` by default. Without
   effect if a custom `template` is used.
-* `images` (Optional) - Overwrites default installer images with custom files. I
+- `images` (Optional) - Overwrites default installer images with custom files. I
   recommend JPG.
-  * `background` - (optional, string) 493 x 312 Background bitmap used on the
+  - `background` - (optional, string) 493 x 312 Background bitmap used on the
     welcome and completion dialogs. Will be used as `WixUIDialogBmp`.
-  * `banner` - (optional, string) 493 × 58 Top banner used on most dialogs that
+  - `banner` - (optional, string) 493 × 58 Top banner used on most dialogs that
     don't use `background`. Will be used as `WixUIBannerBmp`.
-  * `exclamationIcon` - (optional, string) 32 x 32 Exclamation icon on the
+  - `exclamationIcon` - (optional, string) 32 x 32 Exclamation icon on the
     `WaitForCostingDlg` dialog. Will be used as `WixUIExclamationIco`.
-  * `infoIcon` - (optional, string) 32 x 32 Information icon on the cancel and
+  - `infoIcon` - (optional, string) 32 x 32 Information icon on the cancel and
     error dialogs. Will be used as `WixUIInfoIco`.
-  * `newIcon` - (optional, string) 16 x 16 "New folder" icon for the "browse"
+  - `newIcon` - (optional, string) 16 x 16 "New folder" icon for the "browse"
     dialog. Will be used as `WixUINewIco`.
-  * `upIcon` - (optional, string) 16 x 16 "Up" icon for the "browse" dialog.
+  - `upIcon` - (optional, string) 16 x 16 "Up" icon for the "browse" dialog.
     Will be used as `WixUIUpIco`.
 
 ##### Template Configuration (Optional)
@@ -142,14 +142,14 @@ This module uses XML bulding blocks to generate the final `.wxs` file. After
 instantiating the class, but before calling `create()`, you can change the
 default XML. The available fields on the class are:
 
-* `componentTemplate` (string) - Used for `<Component>` elements. One per file.
-* `componentRefTemplate` (string) - Used for `<ComponentRef>` elements. Again,
+- `componentTemplate` (string) - Used for `<Component>` elements. One per file.
+- `componentRefTemplate` (string) - Used for `<ComponentRef>` elements. Again,
   one per file.
-* `directoryTemplate` (string) - Used for `<Directory>` elements. This module
+- `directoryTemplate` (string) - Used for `<Directory>` elements. This module
   does not use `<DirectoryRef>` elements.
-* `wixTemplate` (string) - Used as the master template.
-* `uiTemplate` (string) - Used as the master UI template.
-* `backgroundTemplate` (string) - Used as the background template.
+- `wixTemplate` (string) - Used as the master template.
+- `uiTemplate` (string) - Used as the master UI template.
+- `backgroundTemplate` (string) - Used as the background template.
 
 ## Should I use this?
 
@@ -179,12 +179,15 @@ MSI in your pocket. Bear in mind however that you will need to find a way to get
 updates to your users without relying on Electron's auto updater.
 
 ## MSI Administration
+
 The `msi` packages created with this module allow for a wide range of command line parameters. The installer is a "Windows Installer", meaning that the actual installer's logic is part of Windows itself. It supports the following command-line parameters:
 
 #### Install Options
+
 `</uninstall | /x>` Uninstalls the product
 
 #### Display Options
+
 - `/quiet` Quiet mode, no user interaction
 - `/passive` Unattended mode - progress bar only
 - `/q[n|b|r|f]` Sets user interface level
@@ -192,14 +195,16 @@ The `msi` packages created with this module allow for a wide range of command li
   - b Basic UI
   - r Reduced UI
   - f Full UI (default)
-`/help` Help information
+    `/help` Help information
 
 #### Restart Options
+
 - `/norestart` Do not restart after the installation is complete
 - `/promptrestart` Prompts the user for restart if necessary
 - `/forcerestart` Always restart the computer after installation
 
 #### Logging Options
+
 - `/l[i|w|e|a|r|u|c|m|o|p|v|x|+|!|*] <LogFile>`
   - `i` Status messages
   - `w` Nonfatal warnings
@@ -219,9 +224,11 @@ The `msi` packages created with this module allow for a wide range of command li
 - `/log <LogFile>` Equivalent of /l* <LogFile>
 
 #### Update Options
+
 - `/update <Update1.msp>[;Update2.msp]` Applies update(s)
 
 #### Repair Options
+
 - `/f[p|e|c|m|s|o|d|a|u|v]` Repairs a product
   - `p` only if file is missing
   - `o` if file is missing or an older version is installed (default)

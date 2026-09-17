@@ -160,15 +160,9 @@ export class MSICreator {
     const candle = hasCandle();
 
     if (!light || !light.has || !candle || !candle.has) {
-      console.warn(
-        `It appears that electron-wix-msi cannot find candle.exe or light.exe.`,
-      );
-      console.warn(
-        `Please consult the readme at https://github.com/felixrieseberg/electron-wix-msi`,
-      );
-      console.warn(
-        `for information on how to install the Wix toolkit, which is required.\n`,
-      );
+      console.warn(`It appears that electron-wix-msi cannot find candle.exe or light.exe.
+  Please consult the readme at https://github.com/felixrieseberg/electron-wix-msi
+  for information on how to install the Wix toolkit, which is required.\n`);
 
       throw new Error(`Could not find light.exe or candle.exe`);
     } else {
