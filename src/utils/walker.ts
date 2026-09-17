@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as gfs from 'graceful-fs';
-import * as klaw from 'klaw';
+import klaw from 'klaw';
 
 /**
  * Walks over the app directory and returns two arrays of paths,
@@ -8,7 +8,9 @@ import * as klaw from 'klaw';
  *
  * @returns {Promise<{ files: Array<string>, directories: Array<string> }>}
  */
-export function getDirectoryStructure(root: string): Promise <{ files: Array<string>, directories: Array<string> }> {
+export function getDirectoryStructure(
+  root: string,
+): Promise<{ files: Array<string>; directories: Array<string> }> {
   return new Promise((resolve, reject) => {
     if (!fs.existsSync(root)) {
       return reject(new Error(`App directory ${root} does not exist`));
@@ -21,7 +23,7 @@ export function getDirectoryStructure(root: string): Promise <{ files: Array<str
     // buy us much in a build tool. It does, however, break
     // testing with mock-fs.
     klaw(root, { fs: gfs })
-      .on('data', (item) => {
+      .on('data', (item: klaw.Item) => {
         if (item.stats.isFile()) {
           files.push(item.path);
         } else if (item.stats.isDirectory() && item.path !== root) {

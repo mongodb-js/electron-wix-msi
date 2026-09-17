@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 import * as path from 'path';
 
-import { File, FileFolderTree, StringMap } from '../interfaces';
+import type { File, FileFolderTree } from '../interfaces';
 import { separator } from './separator';
 
 /**
@@ -25,12 +25,14 @@ import { separator } from './separator';
  * @returns {boolean}
  */
 export function isDirectChild(parent: string, possibleChild: string): boolean {
-  if (!isChild(parent, possibleChild)) { return false; }
+  if (!isChild(parent, possibleChild)) {
+    return false;
+  }
 
   const parentSplit = parent.split(separator);
   const childSplit = possibleChild.split(separator);
 
-  return (parentSplit.length === childSplit.length - 1);
+  return parentSplit.length === childSplit.length - 1;
 }
 
 /**
@@ -53,7 +55,10 @@ export function isDirectChild(parent: string, possibleChild: string): boolean {
  * @returns {boolean}
  */
 export function isChild(parent: string, possibleChild: string): boolean {
-  return possibleChild.startsWith(`${parent}${separator}`) && parent !== possibleChild;
+  return (
+    possibleChild.startsWith(`${parent}${separator}`) &&
+    parent !== possibleChild
+  );
 }
 
 /**
@@ -87,10 +92,18 @@ export function isChild(parent: string, possibleChild: string): boolean {
  * @param {string} [inputRoot]
  * @returns {FileFolderTree}
  */
-export function arrayToTree(input: Array<string>, root: string): FileFolderTree {
-  const output: FileFolderTree = { __ELECTRON_WIX_MSI_FILES__: [], __ELECTRON_WIX_MSI_PATH__: root };
+export function arrayToTree(
+  input: Array<string>,
+  root: string,
+): FileFolderTree {
+  const output: FileFolderTree = {
+    __ELECTRON_WIX_MSI_FILES__: [],
+    __ELECTRON_WIX_MSI_PATH__: root,
+  };
   const children: Array<string> = input.filter((e) => isChild(root, e));
-  const directChildren: Array<string> = children.filter((e) => isDirectChild(root, e));
+  const directChildren: Array<string> = children.filter((e) =>
+    isDirectChild(root, e),
+  );
 
   directChildren.forEach((directChild) => {
     output[path.basename(directChild)] = arrayToTree(children, directChild);
@@ -137,7 +150,11 @@ export function arrayToTree(input: Array<string>, root: string): FileFolderTree 
  * @param {string} root
  * @returns {FileFolderTree}
  */
-export function addFilesToTree(tree: FileFolderTree, files: Array<string>, root: string): FileFolderTree {
+export function addFilesToTree(
+  tree: FileFolderTree,
+  files: Array<string>,
+  root: string,
+): FileFolderTree {
   const output: FileFolderTree = cloneDeep(tree);
 
   files.forEach((filepath) => {

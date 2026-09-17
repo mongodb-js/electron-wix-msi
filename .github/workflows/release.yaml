@@ -8,7 +8,7 @@ name: Release
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["Check and Test"]
+    workflows: ['Check and Test']
     branches: [main]
     types:
       - completed
@@ -46,13 +46,13 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha || 'main' }}
           token: ${{ steps.app-token.outputs.token }}
-          fetch-depth: "0"
+          fetch-depth: '0'
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22.21.1
-          cache: "npm"
+          node-version: 24.15.0
+          cache: 'npm'
 
       - name: Install npm
         run: npm install -g npm@11.16.0

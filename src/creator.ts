@@ -1,18 +1,26 @@
 import * as fs from 'fs-extra';
 import { flatMap, padStart } from 'lodash';
 import * as path from 'path';
-import * as uuid from 'uuid/v4';
+import { randomUUID } from 'crypto';
+import createDebug from 'debug';
 import { spawnPromise } from './utils/spawn';
 
-import { Component, ComponentRef, Directory, File, FileFolderTree, StringMap } from './interfaces';
+import type {
+  Component,
+  ComponentRef,
+  File,
+  FileFolderTree,
+  StringMap,
+} from './interfaces';
 import { addFilesToTree, arrayToTree } from './utils/array-to-tree';
 import { hasCandle, hasLight } from './utils/detect-wix';
 import { replaceInString, replaceToFile } from './utils/replace';
 import { getDirectoryStructure } from './utils/walker';
 
-const getTemplate = (name: string) => fs.readFileSync(path.join(__dirname, `../static/${name}.xml`), 'utf-8');
+const getTemplate = (name: string) =>
+  fs.readFileSync(path.join(__dirname, `../static/${name}.xml`), 'utf-8');
 const ROOTDIR_NAME = 'APPLICATIONROOTDIRECTORY';
-const debug = require('debug')('electron-wix-msi');
+const debug = createDebug('electron-wix-msi');
 
 export interface MSICreatorOptions {
   appDirectory: string;
@@ -34,7 +42,7 @@ export interface MSICreatorOptions {
   signWithParams?: string;
   certificateFile?: string;
   certificatePassword?: string;
-  arch?: 'x64' | 'ia64'| 'x86';
+  arch?: 'x64' | 'ia64' | 'x86';
 }
 
 export interface UIOptions {
@@ -44,12 +52,12 @@ export interface UIOptions {
 }
 
 export interface UIImages {
-  background?: string;        // WixUIDialogBmp
-  banner?: string;            // WixUIBannerBmp
-  exclamationIcon?: string;   // WixUIExclamationIco
-  infoIcon?: string;          // WixUIInfoIco
-  newIcon?: string;           // WixUINewIco
-  upIcon?: string;            // WixUIUpIco
+  background?: string; // WixUIDialogBmp
+  banner?: string; // WixUIBannerBmp
+  exclamationIcon?: string; // WixUIExclamationIco
+  infoIcon?: string; // WixUIInfoIco
+  newIcon?: string; // WixUINewIco
+  upIcon?: string; // WixUIUpIco
 }
 
 export class MSICreator {
@@ -63,7 +71,7 @@ export class MSICreator {
   public propertyTemplate = getTemplate('property');
 
   // State, overwritable beteween steps
-  public wxsFile: string = '';
+  public wxsFile = '';
 
   // Configuration
   public appDirectory: string;
@@ -84,7 +92,7 @@ export class MSICreator {
   public certificateFile?: string;
   public certificatePassword?: string;
   public signWithParams?: string;
-  public arch: 'x64' | 'ia64'| 'x86' = 'x86';
+  public arch: 'x64' | 'ia64' | 'x86' = 'x86';
 
   public ui: UIOptions | boolean;
 
@@ -104,17 +112,19 @@ export class MSICreator {
     this.manufacturer = options.manufacturer;
     this.name = options.name;
     this.outputDirectory = options.outputDirectory;
-    this.programFilesFolderName = options.programFilesFolderName || options.name;
+    this.programFilesFolderName =
+      options.programFilesFolderName || options.name;
     this.shortName = options.shortName || options.name;
-    this.shortcutFolderName = options.shortcutFolderName || options.manufacturer;
+    this.shortcutFolderName =
+      options.shortcutFolderName || options.manufacturer;
     this.shortcutName = options.shortcutName || options.name;
     this.signWithParams = options.signWithParams;
-    this.upgradeCode = options.upgradeCode || uuid();
+    this.upgradeCode = options.upgradeCode || randomUUID();
     this.version = options.version;
     this.arch = options.arch || 'x86';
 
-    this.appUserModelId = options.appUserModelId
-      || `com.squirrel.${this.shortName}.${this.exe}`;
+    this.appUserModelId =
+      options.appUserModelId || `com.squirrel.${this.shortName}.${this.exe}`;
 
     this.ui = options.ui !== undefined ? options.ui : false;
   }
@@ -126,8 +136,10 @@ export class MSICreator {
    *
    * @returns {Promise<{ wxsFile: string, wxsContent: string }>}
    */
-  public async create(): Promise<{ wxsFile: string, wxsContent: string }> {
-    const { files, directories } = await getDirectoryStructure(this.appDirectory);
+  public async create(): Promise<{ wxsFile: string; wxsContent: string }> {
+    const { files, directories } = await getDirectoryStructure(
+      this.appDirectory,
+    );
 
     this.files = files;
     this.directories = directories;
@@ -148,13 +160,15 @@ export class MSICreator {
     const candle = hasCandle();
 
     if (!light || !light.has || !candle || !candle.has) {
-      console.warn(`It appears that electron-wix-msi cannot find candle.exe or light.exe.`);
-      console.warn(`Please consult the readme at https://github.com/felixrieseberg/electron-wix-msi`);
-      console.warn(`for information on how to install the Wix toolkit, which is required.\n`);
+      console.warn(`It appears that electron-wix-msi cannot find candle.exe or light.exe.
+  Please consult the readme at https://github.com/felixrieseberg/electron-wix-msi
+  for information on how to install the Wix toolkit, which is required.\n`);
 
       throw new Error(`Could not find light.exe or candle.exe`);
     } else {
-      console.log(`electron-wix-msi: Using light.exe (${light.version}) and candle.exe (${candle.version})`);
+      console.log(
+        `electron-wix-msi: Using light.exe (${light.version ?? 'unknown'}) and candle.exe (${candle.version ?? 'unknown'})`,
+      );
     }
 
     if (!this.wxsFile) {
@@ -174,28 +188,35 @@ export class MSICreator {
    *
    * @returns {Promise<{ wxsFile: string, wxsContent: string }>}
    */
-  private async createWxs(): Promise<{ wxsFile: string, wxsContent: string }> {
+  private async createWxs(): Promise<{ wxsFile: string; wxsContent: string }> {
     if (!this.tree) {
       throw new Error('Tree does not exist');
     }
 
     const target = path.join(this.outputDirectory, `${this.exe}.wxs`);
     const base = path.basename(this.appDirectory);
-    const directories = await this.getDirectoryForTree(
-      this.tree, base, 8, ROOTDIR_NAME, this.programFilesFolderName);
-    const componentRefs = await this.getComponentRefs();
+    const directories = this.getDirectoryForTree(
+      this.tree,
+      base,
+      8,
+      ROOTDIR_NAME,
+      this.programFilesFolderName,
+    );
+    const componentRefs = this.getComponentRefs();
 
     const scaffoldReplacements = {
-      '<!-- {{ComponentRefs}} -->': componentRefs.map(({ xml }) => xml).join('\n'),
+      '<!-- {{ComponentRefs}} -->': componentRefs
+        .map(({ xml }) => xml)
+        .join('\n'),
       '<!-- {{Directories}} -->': directories,
-      '<!-- {{UI}} -->': this.getUI()
+      '<!-- {{UI}} -->': this.getUI(),
     };
 
     const replacements = {
       '{{ApplicationBinary}}': this.exe,
       '{{ApplicationDescription}}': this.description,
       '{{ApplicationName}}': this.name,
-      '{{ApplicationShortcutGuid}}': uuid(),
+      '{{ApplicationShortcutGuid}}': randomUUID(),
       '{{ApplicationShortName}}': this.shortName,
       '{{AppUserModelId}}': this.appUserModelId,
       '{{Language}}': this.language.toString(10),
@@ -205,15 +226,17 @@ export class MSICreator {
       '{{UpgradeCode}}': this.upgradeCode,
       '{{Version}}': this.version,
       '{{Platform}}': this.arch,
-      '{{ProgramFilesFolder}}': this.arch === 'x86' ? 'ProgramFilesFolder' : 'ProgramFiles64Folder',
-      '{{ProcessorArchitecture}}' : this.arch,
-      '{{Win64YesNo}}' : this.arch === 'x86' ? 'no' : 'yes',
+      '{{ProgramFilesFolder}}':
+        this.arch === 'x86' ? 'ProgramFilesFolder' : 'ProgramFiles64Folder',
+      '{{ProcessorArchitecture}}': this.arch,
+      '{{Win64YesNo}}': this.arch === 'x86' ? 'no' : 'yes',
     };
 
-    const completeTemplate = replaceInString(this.wixTemplate, scaffoldReplacements);
+    const completeTemplate = replaceInString(
+      this.wixTemplate,
+      scaffoldReplacements,
+    );
     const output = await replaceToFile(completeTemplate, target, replacements);
-
-    console.log('wxs content', output);
 
     return { wxsFile: target, wxsContent: output };
   }
@@ -244,35 +267,41 @@ export class MSICreator {
    */
   private async createFire(type: 'wixobj' | 'msi'): Promise<string> {
     const cwd = path.dirname(this.wxsFile);
-    const expectedObj = path.join(cwd, `${path.basename(this.wxsFile, '.wxs')}.${type}`);
-    const binary = type === 'msi'
-      ? 'light.exe'
-      : 'candle.exe';
-    const input = type === 'msi'
-      ? path.join(cwd, `${path.basename(this.wxsFile, '.wxs')}.wixobj`)
-      : this.wxsFile;
+    const expectedObj = path.join(
+      cwd,
+      `${path.basename(this.wxsFile, '.wxs')}.${type}`,
+    );
+    const binary = type === 'msi' ? 'light.exe' : 'candle.exe';
+    const input =
+      type === 'msi'
+        ? path.join(cwd, `${path.basename(this.wxsFile, '.wxs')}.wixobj`)
+        : this.wxsFile;
 
     if (this.ui && !this.extensions.find((e) => e === 'WixUIExtension')) {
       this.extensions.push('WixUIExtension');
     }
 
-    const preArgs = flatMap(this.extensions.map((e) => (['-ext', e])));
+    const preArgs = flatMap(this.extensions.map((e) => ['-ext', e]));
 
     if (type === 'msi') {
       preArgs.push('-sval');
     }
 
-    console.log(`Executing ${binary}`, [ ...preArgs, input ]);
-
-    const { code, stderr, stdout } = await spawnPromise(binary, [ ...preArgs, input ], {
-      env: process.env,
-      cwd
-    });
+    const { code, stderr, stdout } = await spawnPromise(
+      binary,
+      [...preArgs, input],
+      {
+        env: process.env,
+        cwd,
+      },
+    );
 
     if (code === 0 && fs.existsSync(expectedObj)) {
       return expectedObj;
     } else {
-      throw new Error(`Could not create ${type} file. Code: ${code} StdErr: ${stderr} StdOut: ${stdout}`);
+      throw new Error(
+        `Could not create ${type} file. Code: ${code} StdErr: ${stderr} StdOut: ${stdout}`,
+      );
     }
   }
 
@@ -291,21 +320,35 @@ export class MSICreator {
     }
 
     if (!signWithParams && !certificatePassword) {
-      throw new Error('You must provide a certificatePassword with a certificateFile');
+      throw new Error(
+        'You must provide a certificatePassword with a certificateFile',
+      );
     }
 
     const args: Array<string> = signWithParams
-      // Split up at spaces and doublequotes
-      ? signWithParams.match(/(?:[^\s"]+|"[^"]*")+/g) as Array<string>
-      : ['/a', '/f', path.resolve(certificateFile!), '/p', certificatePassword!];
+      ? // Split up at spaces and doublequotes
+        (signWithParams.match(/(?:[^\s"]+|"[^"]*")+/g) as Array<string>)
+      : [
+          '/a',
+          '/f',
+          path.resolve(certificateFile!),
+          '/p',
+          certificatePassword!,
+        ];
 
-    const { code, stderr, stdout } = await spawnPromise(signToolPath, [ 'sign', ...args, msiFile ], {
-      env: process.env,
-      cwd: path.join(__dirname, '../vendor'),
-    });
+    const { code, stderr, stdout } = await spawnPromise(
+      signToolPath,
+      ['sign', ...args, msiFile],
+      {
+        env: process.env,
+        cwd: path.join(__dirname, '../vendor'),
+      },
+    );
 
     if (code !== 0) {
-      throw new Error(`Signtool exited with code ${code}. Stderr: ${stderr}. Stdout: ${stdout}`);
+      throw new Error(
+        `Signtool exited with code ${code}. Stderr: ${stderr}. Stdout: ${stdout}`,
+      );
     }
   }
 
@@ -321,15 +364,15 @@ export class MSICreator {
       xml = this.uiTemplate;
     }
 
-    if (typeof this.ui === 'object' && this.ui !== 'null') {
-      const { images, template, chooseDirectory } = this.ui;
+    // `ui` is `UIOptions | boolean`, so the typeof check alone narrows it.
+    if (typeof this.ui === 'object') {
+      const { template, chooseDirectory } = this.ui;
       const propertiesXml = this.getUIProperties(this.ui);
-      const uiTemplate = template || chooseDirectory
-        ? this.uiDirTemplate
-        : this.uiTemplate;
+      const uiTemplate =
+        template || chooseDirectory ? this.uiDirTemplate : this.uiTemplate;
 
       xml = replaceInString(uiTemplate, {
-        '<!-- {{Properties}} -->': propertiesXml
+        '<!-- {{Properties}} -->': propertiesXml,
       });
     }
 
@@ -349,7 +392,7 @@ export class MSICreator {
       exclamationIcon: 'WixUIExclamationIco',
       infoIcon: 'WixUIInfoIco',
       newIcon: 'WixUINewIco',
-      upIcon: 'WixUIUpIco'
+      upIcon: 'WixUIUpIco',
     };
 
     return Object.keys(images)
@@ -357,7 +400,7 @@ export class MSICreator {
         return propertyMap[key]
           ? replaceInString(this.propertyTemplate, {
               '{{Key}}': propertyMap[key],
-              '{{Value}}': (images as any)[key]
+              '{{Value}}': (images as any)[key],
             })
           : '';
       })
@@ -373,34 +416,38 @@ export class MSICreator {
    * @param {number} [indent=0]
    * @returns {string}
    */
-  private getDirectoryForTree(tree: FileFolderTree,
-                              treePath: string,
-                              indent: number,
-                              id?: string,
-                              name?: string): string {
+  private getDirectoryForTree(
+    tree: FileFolderTree,
+    treePath: string,
+    indent: number,
+    id?: string,
+    name?: string,
+  ): string {
     const childDirectories = Object.keys(tree)
       .filter((k) => !k.startsWith('__ELECTRON_WIX_MSI'))
       .map((k) => {
         return this.getDirectoryForTree(
           tree[k] as FileFolderTree,
           (tree[k] as FileFolderTree).__ELECTRON_WIX_MSI_PATH__,
-          indent + 2
+          indent + 2,
         );
       });
-    const childFiles = tree.__ELECTRON_WIX_MSI_FILES__
-      .map((file) => {
-        const component = this.getComponent(file, indent + 2);
-        this.components.push(component);
-        return component.xml;
-      });
+    const childFiles = tree.__ELECTRON_WIX_MSI_FILES__.map((file) => {
+      const component = this.getComponent(file, indent + 2);
+      this.components.push(component);
+      return component.xml;
+    });
 
-    const children: string = [childDirectories.join('\n'), childFiles.join('\n')].join('');
+    const children: string = [
+      childDirectories.join('\n'),
+      childFiles.join('\n'),
+    ].join('');
 
     return replaceInString(this.directoryTemplate, {
       '<!-- {{I}} -->': padStart('', indent),
       '{{DirectoryId}}': id || this.getComponentId(treePath),
       '{{DirectoryName}}': name || path.basename(treePath),
-      '<!-- {{Children}} -->': children
+      '<!-- {{Children}} -->': children,
     });
   }
 
@@ -426,7 +473,7 @@ export class MSICreator {
     return this.components.map(({ componentId }) => {
       const xml = replaceInString(this.componentRefTemplate, {
         '<!-- {{I}} -->': '      ',
-        '{{ComponentId}}': componentId
+        '{{ComponentId}}': componentId,
       });
 
       return { componentId, xml };
@@ -440,7 +487,7 @@ export class MSICreator {
    * @returns {Component}
    */
   private getComponent(file: File, indent: number): Component {
-    const guid = uuid();
+    const guid = randomUUID();
     const componentId = this.getComponentId(file.path);
     const xml = replaceInString(this.componentTemplate, {
       '<!-- {{I}} -->': padStart('', indent),
@@ -448,7 +495,7 @@ export class MSICreator {
       '{{FileId}}': componentId,
       '{{Name}}': file.name,
       '{{Guid}}': guid,
-      '{{SourcePath}}': file.path
+      '{{SourcePath}}': file.path,
     });
 
     return { guid, componentId, xml, file };
@@ -464,11 +511,10 @@ export class MSICreator {
     const pathId = filePath
       .replace(this.appDirectory, '')
       .replace(/^\\|\//g, '');
-    const pathPart = pathId.length > 34
-      ? path.basename(filePath).slice(0, 34)
-      : pathId;
-    const uniqueId = `_${pathPart}_${uuid()}`;
+    const pathPart =
+      pathId.length > 34 ? path.basename(filePath).slice(0, 34) : pathId;
+    const uniqueId = `_${pathPart}_${randomUUID()}`;
 
-    return uniqueId.replace(/[^A-Za-z0-9_\.]/g, '_');
+    return uniqueId.replace(/[^A-Za-z0-9_.]/g, '_');
   }
 }

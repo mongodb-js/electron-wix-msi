@@ -1,0 +1,6 @@
+* text=auto eol=lf
+
+*.exe binary
+*.gif binary
+*.png binary
+*.pxm binary
