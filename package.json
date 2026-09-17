@@ -17,62 +17,49 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build": "tsc --pretty",
+    "build": "tsc -p tsconfig-build.json --pretty",
     "bump-packages": "bump-monorepo-packages",
-    "test": "jest",
-    "lint": "tslint -c tslint.json 'src/**/*.ts'",
-    "harness": "npm run build && node ./harness/harness.js"
+    "test": "mocha",
+    "eslint": "eslint",
+    "prettier": "prettier",
+    "lint": "npm run eslint . && npm run prettier -- --check .",
+    "reformat": "npm run eslint . -- --fix && npm run prettier -- --write .",
+    "harness": "npm run build && node ./harness/harness.js",
+    "test-cov": "nyc -x \"**/*.spec.*\" --reporter=lcov --reporter=text --reporter=html npm run test",
+    "test-watch": "npm run test -- --watch"
   },
   "dependencies": {
     "debug": "^3.1.0",
     "fs-extra": "^7.0.0",
     "klaw": "^3.0.0",
-    "lodash": "^4.17.10",
-    "uuid": "^3.3.2"
+    "lodash": "^4.17.10"
   },
   "devDependencies": {
+    "@mongodb-js/eslint-config-devtools": "^0.11.8",
+    "@mongodb-js/mocha-config-devtools": "^2.0.1",
     "@mongodb-js/monorepo-tools": "^1.6.0",
-    "@types/debug": "0.0.30",
-    "@types/fs-extra": "^5.0.4",
-    "@types/graceful-fs": "^4.1.2",
-    "@types/jest": "^20.0.5",
-    "@types/klaw": "^2.1.1",
-    "@types/lodash": "^4.14.85",
-    "@types/mock-fs": "^3.6.30",
-    "@types/node": "^10.9.4",
-    "@types/uuid": "^3.4.4",
-    "coveralls": "^3.0.2",
-    "jest": "^20.0.4",
-    "jest-environment-node-debug": "^2.0.0",
+    "@mongodb-js/prettier-config-devtools": "^1.0.4",
+    "@types/chai": "^5.2.3",
+    "@types/debug": "^4.1.12",
+    "@types/fs-extra": "^7.0.0",
+    "@types/graceful-fs": "^4.1.9",
+    "@types/klaw": "^3.0.6",
+    "@types/lodash": "^4.17.20",
+    "@types/mocha": "^10.0.10",
+    "@types/mock-fs": "^4.13.4",
+    "@types/node": "^24.0.0",
+    "@types/sinon": "^22.0.0",
+    "chai": "^4.5.0",
+    "eslint": "^8.57.1",
+    "mocha": "^12.0.1",
     "mock-fs": "^5.5.0",
-    "ts-jest": "^20.0.7",
-    "tslint": "^5.11.0",
-    "typescript": "^3.0.3"
+    "nyc": "^18.0.0",
+    "prettier": "^3.6.2",
+    "sinon": "^22.1.0",
+    "typescript": "6.0.3"
   },
   "engines": {
-    "node": ">=6.0.0"
-  },
-  "jest": {
-    "transform": {
-      ".(ts)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-    },
-    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|js)$",
-    "testPathIgnorePatterns": [
-      "\\\\node_modules\\\\",
-      "__tests__/fixture",
-      "__tests__/mocks"
-    ],
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
-    "testEnvironment": "node",
-    "collectCoverage": true,
-    "mapCoverage": true,
-    "collectCoverageFrom": [
-      "src/**/*.ts",
-      "!src/interfaces.ts",
-      "!src/index.ts"
-    ]
+    "node": ">=24.15.0",
+    "npm": ">=11.16.0"
   }
 }

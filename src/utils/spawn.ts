@@ -1,6 +1,9 @@
-import { SpawnOptions } from 'child_process';
+import type { SpawnOptions } from 'child_process';
+import createDebug from 'debug';
 
-const debug = require('debug')('electron-wix-msi');
+import childProcess from 'child_process';
+
+const debug = createDebug('electron-wix-msi');
 
 export interface SpawnPromiseResult {
   stdout: string;
@@ -16,25 +19,26 @@ export interface SpawnPromiseResult {
  * @param {SpawnOptions} [options]
  * @returns {Promise<SpawnPromiseResult>}
  */
-export function spawnPromise(name: string,
-                             args: Array<string>,
-                             options?: SpawnOptions): Promise<SpawnPromiseResult> {
+export function spawnPromise(
+  name: string,
+  args: Array<string>,
+  options?: SpawnOptions,
+): Promise<SpawnPromiseResult> {
   return new Promise((resolve) => {
-    const { spawn } = require('child_process');
-    const fork = spawn(name, args, options);
+    const fork = childProcess.spawn(name, args, options ?? {});
 
-    debug(`Spawning ${name} with ${args}`);
+    debug(`Spawning ${name} with ${args.join(' ')}`);
 
     let stdout = '';
     let stderr = '';
 
-    fork.stdout.on('data', (data: any) => {
-      debug(`Spawn ${name} stdout: ${data}`);
+    fork.stdout?.on('data', (data: Buffer | string) => {
+      debug(`Spawn ${name} stdout: ${String(data)}`);
       stdout += data;
     });
 
-    fork.stderr.on('data', (data: any) => {
-      debug(`Spawn ${name} stderr: ${data}`);
+    fork.stderr?.on('data', (data: Buffer | string) => {
+      debug(`Spawn ${name} stderr: ${String(data)}`);
       stderr += data;
     });
 

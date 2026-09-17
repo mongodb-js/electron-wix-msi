@@ -4,3 +4,4 @@ coverage
 harness/app/*
 harness/out/*
 *.swp
+.nyc_output

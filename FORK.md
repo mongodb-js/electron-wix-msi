@@ -37,6 +37,22 @@ runs `src/mongo/installer/compass/Install-Compass.ps1`, which downloads and
 executes `compass-install.exe`, the Squirrel installer. It performs no MSI
 chaining and reads no registry values from us.
 
+The MSI installer gets some thousands downloads every month.
+
+From 16-08-2026 to 16-09-2026, we had the following:
+
+| Installer                        | Downloads |
+| -------------------------------- | --------- |
+| **nupkg (Squirrel auto-update)** | 612873    |
+| **zip (macOS)**                  | 382089    |
+| **exe (Windows installer)**      | 257549    |
+| **dmg (macOS)**                  | 155762    |
+| **deb (Debian/Ubuntu)**          | 98648     |
+| **msi (Windows MSI)**            | 18515     |
+| **rpm (RHEL/Fedora)**            | 12376     |
+| **zip (Windows portable)**       | 9191      |
+| **zip (other)**                  | 5         |
+
 ### 1.2 Why a fork rather than a dependency
 
 Upstream v2.1.1 had **no configuration surface** for what Compass needed. There
@@ -66,11 +82,11 @@ Compass's `shortcutFolderName: "MongoDB"`
 
 Upstream 5.1.3 cannot produce it:
 
-| | Upstream 5.1.3 | This fork |
-| --- | --- | --- |
-| Install path recorded at | `HKMU\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{ProductCode}.msq` → `InstallPath` | `HKLM\Software\MongoDB\MongoDB Compass` → `Directory` |
-| Product key | `SOFTWARE\{{Manufacturer}}\{{ApplicationShortName}}`, holding only an `AutoUpdate` value, and only when the auto-updater feature is enabled | n/a |
-| Arbitrary registry values from config | **not supported** — `MSICreatorOptions` has no `registry` field; the array is built by a private `getRegistryKeys()` (`src/creator.ts`) | n/a |
+|                                       | Upstream 5.1.3                                                                                                                              | This fork                                             |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Install path recorded at              | `HKMU\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{ProductCode}.msq` → `InstallPath`                                                | `HKLM\Software\MongoDB\MongoDB Compass` → `Directory` |
+| Product key                           | `SOFTWARE\{{Manufacturer}}\{{ApplicationShortName}}`, holding only an `AutoUpdate` value, and only when the auto-updater feature is enabled | n/a                                                   |
+| Arbitrary registry values from config | **not supported** — `MSICreatorOptions` has no `registry` field; the array is built by a private `getRegistryKeys()` (`src/creator.ts`)     | n/a                                                   |
 
 Note also that upstream keys off `Manufacturer`, which for Compass is
 `"MongoDB Inc"`, not `"MongoDB"` — so even the product key would land at the
@@ -138,14 +154,14 @@ The complete delta against upstream v2.1.1 is seven files and roughly 117 lines
 (`git diff 7f2a003..HEAD`), of which two files are `.gitignore` and a CodeQL
 workflow. The functional changes:
 
-| # | Change | Commits | Why it was made | In upstream 5.1.3? | Still required? |
-| --- | --- | --- | --- | --- | --- |
-| 1 | Registry root changed from `Software\Microsoft\{{ApplicationShortName}}` to `Software\{{ShortcutFolderName}}\{{ApplicationShortName}}` | `13c0521`, `534009c` | Compass's keys must live under `Software\MongoDB\`, not in Microsoft's hive | **No.** Still hardcoded to `Software\Microsoft\` (`static/wix.xml`) | **Yes.** Half of the path the Atlas CLI reads |
-| 2 | New `ApplicationInstallLocation` component writing `HKLM\Software\{{ShortcutFolderName}}\{{ApplicationShortName}}` with values `Directory` and `UserDataDirectory` | `ad81979` → `2cb2c17` | expose the install path to external tools | **No.** Not expressible from config; `MSICreatorOptions` has no `registry` field | **`Directory`: yes** — read by the Atlas CLI. **`UserDataDirectory`: no** — no known consumer |
-| 3 | `util:RemoveFolderEx` plus a `USERDATAFOLDER` `RegistrySearch`, deleting `[APPLICATIONROOTDIRECTORY]UserData` on uninstall | `fd5b14f`, `0bd01ee` | remove leftover user data on uninstall | Present, but bound to `INSTALLPATH` (the whole install directory) | **No.** Compass sets `userData` to `%APPDATA%\MongoDB Compass` (`packages/compass/src/setup-hadron-distribution.ts`); the targeted directory is never created |
-| 4 | `-sval` passed unconditionally to `light.exe` for MSI output, suppressing ICE validation | `3e00bcd` | **not recorded.** Presumably ICE validation failures on the 2019 build agents | Available as the `lightSwitches?: string[]` option | Capability yes; hardcoding it is fork-specific |
-| 5 | Two `console.log` calls in `src/creator.ts` (`'wxs content'`, `Executing ...`) | `3e00bcd` | debug leftovers, shipped unintentionally | No | **No** |
-| 6 | Hardcoded component GUID `78B37883-AC76-44C6-8122-007BD077BA29` | `8913860` | WiX required an explicit GUID for the component added in #2 | n/a | Inherent to #2; noted as a wart |
+| #   | Change                                                                                                                                                             | Commits               | Why it was made                                                               | In upstream 5.1.3?                                                               | Still required?                                                                                                                                               |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Registry root changed from `Software\Microsoft\{{ApplicationShortName}}` to `Software\{{ShortcutFolderName}}\{{ApplicationShortName}}`                             | `13c0521`, `534009c`  | Compass's keys must live under `Software\MongoDB\`, not in Microsoft's hive   | **No.** Still hardcoded to `Software\Microsoft\` (`static/wix.xml`)              | **Yes.** Half of the path the Atlas CLI reads                                                                                                                 |
+| 2   | New `ApplicationInstallLocation` component writing `HKLM\Software\{{ShortcutFolderName}}\{{ApplicationShortName}}` with values `Directory` and `UserDataDirectory` | `ad81979` → `2cb2c17` | expose the install path to external tools                                     | **No.** Not expressible from config; `MSICreatorOptions` has no `registry` field | **`Directory`: yes** — read by the Atlas CLI. **`UserDataDirectory`: no** — no known consumer                                                                 |
+| 3   | `util:RemoveFolderEx` plus a `USERDATAFOLDER` `RegistrySearch`, deleting `[APPLICATIONROOTDIRECTORY]UserData` on uninstall                                         | `fd5b14f`, `0bd01ee`  | remove leftover user data on uninstall                                        | Present, but bound to `INSTALLPATH` (the whole install directory)                | **No.** Compass sets `userData` to `%APPDATA%\MongoDB Compass` (`packages/compass/src/setup-hadron-distribution.ts`); the targeted directory is never created |
+| 4   | `-sval` passed unconditionally to `light.exe` for MSI output, suppressing ICE validation                                                                           | `3e00bcd`             | **not recorded.** Presumably ICE validation failures on the 2019 build agents | Available as the `lightSwitches?: string[]` option                               | Capability yes; hardcoding it is fork-specific                                                                                                                |
+| 5   | Two `console.log` calls in `src/creator.ts` (`'wxs content'`, `Executing ...`)                                                                                     | `3e00bcd`             | debug leftovers, shipped unintentionally                                      | No                                                                               | **No**                                                                                                                                                        |
+| 6   | Hardcoded component GUID `78B37883-AC76-44C6-8122-007BD077BA29`                                                                                                    | `8913860`             | WiX required an explicit GUID for the component added in #2                   | n/a                                                                              | Inherent to #2; noted as a wart                                                                                                                               |
 
 Requirements this creates for callers: change #3 emits `util:` namespaced XML,
 so the caller **must** pass `extensions: ['WixUtilExtension']` or `light.exe`
@@ -224,24 +240,24 @@ CI **does not** catch:
   has no coverage.
 - **The Start Menu shortcut** and the `shortcutFolderName` it is filed under.
 
-The coverage boundary is therefore that CI verifies the installer *works*, not
-what the installer *writes*. The one property this fork exists to provide —
+The coverage boundary is therefore that CI verifies the installer _works_, not
+what the installer _writes_. The one property this fork exists to provide —
 the registry layout of [§1.3](#13-the-reason-the-fork-is-still-load-bearing-today) — is the property with no test behind it.
 
 ---
 
 ## 4. Lineage
 
-| When | What |
-| --- | --- |
-| Sep 2018 | COMPASS-3117 selects `felixrieseberg/electron-wix-msi` |
-| Jan 2019 | Compass adopts upstream (`f6300df4a4`) |
-| 2019-02-08 | Fork point: upstream v2.1.1, commit `7f2a003`. Compass switches to the fork in `7cf6603bad`. First publish, `@mongodb-js/electron-wix-msi@2.1.2` |
-| Feb 2019 | All functional changes land, 2.1.2 → 2.1.20 |
-| 2020 | Package absorbed into the `mongodb-js/compass` monorepo as `packages/electron-wix-msi`; 2.2.0 and 2.2.1 published from there (tests and tooling only) |
-| 2021-06-04 | Extracted back to this standalone repo (`156ee29`; `chore(monorepo): remove electron-wix-msi (#2228)` on the Compass side). Version 3.0.0 |
-| Dec 2023 | CodeQL workflow added, then removed (`d264d67`, `84ef067`) |
-| 2026-09-09 | Repository unarchived; CodeQL workflow and CODEOWNERS re-added (`3c1fa70`, COMPASS-10984) |
+| When       | What                                                                                                                                                  |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sep 2018   | COMPASS-3117 selects `felixrieseberg/electron-wix-msi`                                                                                                |
+| Jan 2019   | Compass adopts upstream (`f6300df4a4`)                                                                                                                |
+| 2019-02-08 | Fork point: upstream v2.1.1, commit `7f2a003`. Compass switches to the fork in `7cf6603bad`. First publish, `@mongodb-js/electron-wix-msi@2.1.2`      |
+| Feb 2019   | All functional changes land, 2.1.2 → 2.1.20                                                                                                           |
+| 2020       | Package absorbed into the `mongodb-js/compass` monorepo as `packages/electron-wix-msi`; 2.2.0 and 2.2.1 published from there (tests and tooling only) |
+| 2021-06-04 | Extracted back to this standalone repo (`156ee29`; `chore(monorepo): remove electron-wix-msi (#2228)` on the Compass side). Version 3.0.0             |
+| Dec 2023   | CodeQL workflow added, then removed (`d264d67`, `84ef067`)                                                                                            |
+| 2026-09-09 | Repository unarchived; CodeQL workflow and CODEOWNERS re-added (`3c1fa70`, COMPASS-10984)                                                             |
 
 Published versions: 2.1.2 through 2.1.20, then 2.2.0, 2.2.1, 3.0.0.
 

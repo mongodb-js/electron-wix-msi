@@ -1,0 +1,10 @@
+{
+  // @typescript-eslint@5 (pinned by @mongodb-js/eslint-config-devtools) cannot
+  // parse the es2024 lib the build uses. Lint does not emit, so the older lib
+  // is only here to satisfy the parser. include/exclude are inherited.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "target": "ES2022"
+  }
+}

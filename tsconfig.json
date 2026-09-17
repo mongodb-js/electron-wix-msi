@@ -1,26 +1,13 @@
 {
   "compilerOptions": {
-    "declaration": true,
     "module": "commonjs",
-    "moduleResolution": "node",
-    "lib": [
-      "es2015"
-    ],
-    "target": "es2015",
+    "lib": ["ES2024"],
+    "target": "ES2024",
     "strict": true,
-    "outDir": "./lib",
-    "preserveConstEnums": true,
-    "removeComments": true,
-    "inlineSourceMap": false,
-    "typeRoots": [
-      "./node_modules/@types"
-    ]
+    "esModuleInterop": true,
+    "rootDir": ".",
+    "types": ["node", "mocha", "chai"]
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/*-spec.ts"
-  ]
+  "include": ["**/*"],
+  "exclude": ["node_modules", "lib", "coverage", "vendor"]
 }

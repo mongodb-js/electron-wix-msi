@@ -1,7 +1,6 @@
 import * as fs from 'fs-extra';
-import * as path from 'path';
 
-import { StringMap } from '../interfaces';
+import type { StringMap } from '../interfaces';
 
 /**
  * Replaces all occurences of keys in a string and writes the result to disk.
@@ -11,9 +10,11 @@ import { StringMap } from '../interfaces';
  * @param {StringMap<string>} replacements
  * @returns {Promise<void>}
  */
-export async function replaceToFile(input: string,
-                                    target: string,
-                                    replacements: StringMap<string>): Promise<string> {
+export async function replaceToFile(
+  input: string,
+  target: string,
+  replacements: StringMap<string>,
+): Promise<string> {
   const output = replaceInString(input, replacements);
   await fs.outputFile(target, output, 'utf-8');
   return output;
@@ -26,7 +27,10 @@ export async function replaceToFile(input: string,
  * @param {StringMap<string>} replacements
  * @returns {string}
  */
-export function replaceInString(source: string, replacements: StringMap<string>): string {
+export function replaceInString(
+  source: string,
+  replacements: StringMap<string>,
+): string {
   let output = source;
 
   Object.keys(replacements).forEach((key) => {
