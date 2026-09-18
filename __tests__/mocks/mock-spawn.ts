@@ -1,4 +1,3 @@
-import { SpawnOptions } from 'child_process';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 
@@ -6,14 +5,29 @@ export class MockSpawn extends EventEmitter {
   public stdout = new EventEmitter();
   public stderr = new EventEmitter();
 
-  constructor(name: string, private readonly args: Array<string> = [], options: any = {}, public readonly fs: any) {
+  constructor(
+    name: string,
+    private readonly args: Array<string> = [],
+    options: any = {},
+    public readonly fs: any,
+  ) {
     super();
 
-    if (name === 'candle.exe' && args && options && !this.contains('fail-candle')) {
+    if (
+      name === 'candle.exe' &&
+      args &&
+      options &&
+      !this.contains('fail-candle')
+    ) {
       this.beCandle();
     }
 
-    if (name === 'light.exe' && args && options && !this.contains('fail-light')) {
+    if (
+      name === 'light.exe' &&
+      args &&
+      options &&
+      !this.contains('fail-light')
+    ) {
       this.beLight();
     }
 
@@ -22,7 +36,9 @@ export class MockSpawn extends EventEmitter {
       this.stdout.emit('data', 'A bit of data');
 
       setImmediate(() => {
-        const code = this.contains(`fail-code-${path.basename(name, '.exe')}`) ? 1 : 0;
+        const code = this.contains(`fail-code-${path.basename(name, '.exe')}`)
+          ? 1
+          : 0;
         this.emit('close', code);
       });
     });
@@ -30,13 +46,19 @@ export class MockSpawn extends EventEmitter {
 
   private beCandle() {
     const filepath = this.args[this.args.length - 1];
-    const target = path.join(path.dirname(filepath), `${path.basename(filepath, '.wxs')}.wixobj`);
+    const target = path.join(
+      path.dirname(filepath),
+      `${path.basename(filepath, '.wxs')}.wixobj`,
+    );
     this.fs.writeFileSync(target, 'hi', 'utf-8');
   }
 
   private beLight() {
     const filepath = this.args[this.args.length - 1];
-    const target = path.join(path.dirname(filepath), `${path.basename(filepath, '.wixobj')}.msi`);
+    const target = path.join(
+      path.dirname(filepath),
+      `${path.basename(filepath, '.wixobj')}.msi`,
+    );
     this.fs.writeFileSync(target, 'hi', 'utf-8');
   }
 

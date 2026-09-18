@@ -1,3 +1,5 @@
+import childProcess from 'child_process';
+
 export interface HasBinaryResult {
   has: boolean;
   version: string | null;
@@ -29,8 +31,7 @@ export function hasLight(): HasBinaryResult {
  */
 export function hasBinary(cmd: string): HasBinaryResult {
   try {
-    const { execSync } = require('child_process');
-    const help = execSync(cmd).toString();
+    const help: string = childProcess.execSync(cmd).toString();
     const version = findVersion(help);
 
     const result = { has: !!help, version };
