@@ -102,6 +102,14 @@ await msiCreator.compile();
 - `signWithParams` (string, optional) - Paramaters to pass to `signtool.exe`.
   Overrides `certificateFile` and `certificatePassword`.
 - `extensions` (array, optional) - Specify WiX extensions to use e.g `['WixUtilExtension', 'C:\My WiX Extensions\FooExtension.dll']`
+- `restrictInstallDirPermissions` (boolean, optional) - Applies an explicit ACL
+  to the install directory: `Administrators` and `SYSTEM` get full control,
+  `Everyone` gets read and execute. Defaults to `false`, in which case the
+  install directory simply inherits the permissions of whatever path was chosen.
+  Recommended when `ui.chooseDirectory` is enabled, since an administrator can
+  otherwise install into a directory that a low-privileged user can write to,
+  allowing that user to replace the installed executable. Note that this
+  replaces the directory's ACL outright and disables inheritance.
 - `ui` (UIOptions, optional) - Enables configuration of the UI. See below for
   more information.
 - `arch` (string, optional) - Defines the architecure the MSI is build for. Values can

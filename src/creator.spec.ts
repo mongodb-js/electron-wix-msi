@@ -227,6 +227,50 @@ describe('MSICreator', function () {
       expect(wxsFile).to.be.ok;
     });
 
+    it('does not restrict install directory permissions by default', async function () {
+      const msiCreator = new MSICreator(defaultOptions);
+      const { wxsFile } = await msiCreator.create();
+      const wxsContent = await fs.readFile(wxsFile, 'utf-8');
+
+      expect(wxsContent).to.not.include('<Permission ');
+      expect(wxsContent).to.not.include('ApplicationRootDirectoryPermissions');
+
+      // Files + Shortcut + InstallLocation
+      const count = wxsContent.split('</Component>').length - 1;
+      expect(count).to.deep.equal(numberOfFiles + 2);
+    });
+
+    it('restricts install directory permissions when enabled', async function () {
+      const msiCreator = new MSICreator({
+        ...defaultOptions,
+        restrictInstallDirPermissions: true,
+      });
+      const { wxsFile } = await msiCreator.create();
+      const wxsContent = await fs.readFile(wxsFile, 'utf-8');
+      const singleLineWxContent = wxsContent.replace(/\s\s+/g, ' ');
+
+      expect(singleLineWxContent).to.include(
+        '<Permission User="Administrators" GenericAll="yes"/>',
+      );
+      expect(singleLineWxContent).to.include(
+        '<Permission User="SYSTEM" GenericAll="yes"/>',
+      );
+      expect(singleLineWxContent).to.include(
+        '<Permission User="Everyone" GenericRead="yes" GenericExecute="yes"/>',
+      );
+
+      // The component is only installed if the feature references it
+      expect(wxsContent).to.include(
+        '<ComponentRef Id="ApplicationRootDirectoryPermissions" />',
+      );
+
+      // Files + Shortcut + InstallLocation + Permissions
+      const count = wxsContent.split('</Component>').length - 1;
+      const refCount = wxsContent.split('<ComponentRef').length - 1;
+      expect(count).to.deep.equal(numberOfFiles + 3);
+      expect(count).to.deep.equal(refCount);
+    });
+
     it('sets the appUserModelId', async function () {
       const msiCreator = new MSICreator({
         ...defaultOptions,

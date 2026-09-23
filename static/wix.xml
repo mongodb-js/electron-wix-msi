@@ -78,6 +78,8 @@
       </Component>
     </DirectoryRef>
 
+<!-- {{Permissions}} -->
+
     <!-- Step 4: Tell WiX to install the files -->
     <Feature Id="MainApplication" Title="Main Application" Level="1">
 <!-- {{ComponentRefs}} -->
