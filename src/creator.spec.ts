@@ -132,9 +132,9 @@ describe('MSICreator', function () {
       const msiCreator = new MSICreator(defaultOptions);
       const { wxsFile } = await msiCreator.create();
       const wxsContent = await fs.readFile(wxsFile, 'utf-8');
-      // Files + Shortcut + InstallLocation
+      // Files + Shortcut + InstallLocation + Permissions
       const count = wxsContent.split('</Component>').length - 1;
-      expect(count).to.deep.equal(numberOfFiles + 2);
+      expect(count).to.deep.equal(numberOfFiles + 3);
     });
 
     it('creates a Wix file with UI properties', async function () {
@@ -227,24 +227,8 @@ describe('MSICreator', function () {
       expect(wxsFile).to.be.ok;
     });
 
-    it('does not restrict install directory permissions by default', async function () {
+    it('restricts install directory permissions', async function () {
       const msiCreator = new MSICreator(defaultOptions);
-      const { wxsFile } = await msiCreator.create();
-      const wxsContent = await fs.readFile(wxsFile, 'utf-8');
-
-      expect(wxsContent).to.not.include('<Permission ');
-      expect(wxsContent).to.not.include('ApplicationRootDirectoryPermissions');
-
-      // Files + Shortcut + InstallLocation
-      const count = wxsContent.split('</Component>').length - 1;
-      expect(count).to.deep.equal(numberOfFiles + 2);
-    });
-
-    it('restricts install directory permissions when enabled', async function () {
-      const msiCreator = new MSICreator({
-        ...defaultOptions,
-        restrictInstallDirPermissions: true,
-      });
       const { wxsFile } = await msiCreator.create();
       const wxsContent = await fs.readFile(wxsFile, 'utf-8');
       const singleLineWxContent = wxsContent.replace(/\s\s+/g, ' ');

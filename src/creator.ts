@@ -33,7 +33,6 @@ export interface MSICreatorOptions {
   name: string;
   outputDirectory: string;
   programFilesFolderName?: string;
-  restrictInstallDirPermissions?: boolean;
   shortName?: string;
   shortcutFolderName?: string;
   shortcutName?: string;
@@ -70,7 +69,6 @@ export class MSICreator {
   public uiTemplate = getTemplate('ui');
   public uiDirTemplate = getTemplate('ui-choose-dir');
   public propertyTemplate = getTemplate('property');
-  public permissionsTemplate = getTemplate('permissions');
 
   // State, overwritable beteween steps
   public wxsFile = '';
@@ -86,7 +84,6 @@ export class MSICreator {
   public name: string;
   public outputDirectory: string;
   public programFilesFolderName: string;
-  public restrictInstallDirPermissions: boolean;
   public shortName: string;
   public shortcutFolderName: string;
   public shortcutName: string;
@@ -117,8 +114,6 @@ export class MSICreator {
     this.outputDirectory = options.outputDirectory;
     this.programFilesFolderName =
       options.programFilesFolderName || options.name;
-    this.restrictInstallDirPermissions =
-      options.restrictInstallDirPermissions || false;
     this.shortName = options.shortName || options.name;
     this.shortcutFolderName =
       options.shortcutFolderName || options.manufacturer;
@@ -209,18 +204,11 @@ export class MSICreator {
     );
     const componentRefs = this.getComponentRefs();
 
-    if (this.restrictInstallDirPermissions) {
-      componentRefs.push(this.getPermissionsComponentRef());
-    }
-
     const scaffoldReplacements = {
       '<!-- {{ComponentRefs}} -->': componentRefs
         .map(({ xml }) => xml)
         .join('\n'),
       '<!-- {{Directories}} -->': directories,
-      '<!-- {{Permissions}} -->': this.restrictInstallDirPermissions
-        ? this.permissionsTemplate
-        : '',
       '<!-- {{UI}} -->': this.getUI(),
     };
 
@@ -490,22 +478,6 @@ export class MSICreator {
 
       return { componentId, xml };
     });
-  }
-
-  /**
-   * Creates the Wix <ComponentRef> for the install directory permissions
-   * component. Must match the component id in static/permissions.xml.
-   *
-   * @returns {ComponentRef}
-   */
-  private getPermissionsComponentRef(): ComponentRef {
-    const componentId = 'ApplicationRootDirectoryPermissions';
-    const xml = replaceInString(this.componentRefTemplate, {
-      '<!-- {{I}} -->': '      ',
-      '{{ComponentId}}': componentId,
-    });
-
-    return { componentId, xml };
   }
 
   /**
