@@ -58,4 +58,4 @@ jobs:
           npm run bump-packages
           git add .
           git commit --no-allow-empty -m "chore(ci): bump packages" || true
-          git push
+          git push origin HEAD:main
