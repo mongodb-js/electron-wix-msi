@@ -153,10 +153,15 @@ default XML. The available fields on the class are:
 
 ### Install Directory Permissions
 
-The generated MSI always applies an explicit ACL to the install directory:
-`Administrators` and `SYSTEM` get full control, `Everyone` gets read and
-execute. Inheritance is disabled, so the directory does not keep permissions it
-would otherwise inherit from its parent.
+The generated MSI always applies an explicit ACL to the install directory and
+to every file it installs: `Administrators` and `SYSTEM` get full control,
+`Everyone` gets read and execute. Inheritance is disabled, so the directory
+does not keep permissions it would otherwise inherit from its parent.
+
+The permissions are set on the files as well as the directory because Windows
+Installer overwrites the contents of a file that already exists without
+touching its ACL — so a file planted before the install would otherwise keep
+the permissions its creator gave it.
 
 This matters when the installing administrator can choose the install location
 (`ui.chooseDirectory`). Without it, installing into a directory that a
