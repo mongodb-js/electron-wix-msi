@@ -7,9 +7,11 @@ name: Bump packages
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ['Check and Test']
+    branches: [main]
+    types:
+      - completed
 
 permissions:
   contents: none # we use the github app's token to checkout and push
