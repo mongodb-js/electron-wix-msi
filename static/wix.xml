@@ -78,11 +78,28 @@
       </Component>
     </DirectoryRef>
 
+    <!-- Lock down the install directory: an administrator can install into a
+         directory a low-privileged user can write to, and that user could then
+         replace the installed executable. The core Permission element is used
+         rather than util:PermissionEx because PermissionEx only adds ACEs, so
+         any pre-existing or inherited write grant would survive. Permission
+         writes an explicit DACL and disables inheritance. -->
+    <DirectoryRef Id="APPLICATIONROOTDIRECTORY">
+      <Component Id="ApplicationRootDirectoryPermissions" Guid="12623B62-745F-411B-8550-BA5F55398C28" Win64="{{Win64YesNo}}">
+        <CreateFolder>
+          <Permission User="Administrators" GenericAll="yes"/>
+          <Permission User="SYSTEM" GenericAll="yes"/>
+          <Permission User="Everyone" GenericRead="yes" GenericExecute="yes"/>
+        </CreateFolder>
+      </Component>
+    </DirectoryRef>
+
     <!-- Step 4: Tell WiX to install the files -->
     <Feature Id="MainApplication" Title="Main Application" Level="1">
 <!-- {{ComponentRefs}} -->
       <ComponentRef Id="ApplicationShortcut" />
       <ComponentRef Id="ApplicationInstallLocation" />
+      <ComponentRef Id="ApplicationRootDirectoryPermissions" />
     </Feature>
   </Product>
 </Wix>

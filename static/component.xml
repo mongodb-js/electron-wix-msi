@@ -1,3 +1,7 @@
 <!-- {{I}} --><Component Id="{{ComponentId}}" Guid="{{Guid}}" Win64="{{Win64YesNo}}">
-<!-- {{I}} -->  <File Name="{{Name}}" Id="{{FileId}}" Source="{{SourcePath}}" KeyPath="yes" Checksum="yes" ProcessorArchitecture="{{ProcessorArchitecture}}"/>
+<!-- {{I}} -->  <File Name="{{Name}}" Id="{{FileId}}" Source="{{SourcePath}}" KeyPath="yes" Checksum="yes" ProcessorArchitecture="{{ProcessorArchitecture}}">
+<!-- {{I}} -->    <Permission User="Administrators" GenericAll="yes"/>
+<!-- {{I}} -->    <Permission User="SYSTEM" GenericAll="yes"/>
+<!-- {{I}} -->    <Permission User="Everyone" GenericRead="yes" GenericExecute="yes"/>
+<!-- {{I}} -->  </File>
 <!-- {{I}} --></Component>

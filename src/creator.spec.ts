@@ -132,9 +132,9 @@ describe('MSICreator', function () {
       const msiCreator = new MSICreator(defaultOptions);
       const { wxsFile } = await msiCreator.create();
       const wxsContent = await fs.readFile(wxsFile, 'utf-8');
-      // Files + Shortcut + InstallLocation
+      // Files + Shortcut + InstallLocation + Permissions
       const count = wxsContent.split('</Component>').length - 1;
-      expect(count).to.deep.equal(numberOfFiles + 2);
+      expect(count).to.deep.equal(numberOfFiles + 3);
     });
 
     it('creates a Wix file with UI properties', async function () {
@@ -225,6 +225,50 @@ describe('MSICreator', function () {
 
       const { wxsFile } = await msiCreator.create();
       expect(wxsFile).to.be.ok;
+    });
+
+    it('restricts install directory permissions', async function () {
+      const msiCreator = new MSICreator(defaultOptions);
+      const { wxsFile } = await msiCreator.create();
+      const wxsContent = await fs.readFile(wxsFile, 'utf-8');
+      const singleLineWxContent = wxsContent.replace(/\s\s+/g, ' ');
+
+      expect(singleLineWxContent).to.include(
+        '<Permission User="Administrators" GenericAll="yes"/>',
+      );
+      expect(singleLineWxContent).to.include(
+        '<Permission User="SYSTEM" GenericAll="yes"/>',
+      );
+      expect(singleLineWxContent).to.include(
+        '<Permission User="Everyone" GenericRead="yes" GenericExecute="yes"/>',
+      );
+
+      // The component is only installed if the feature references it
+      expect(wxsContent).to.include(
+        '<ComponentRef Id="ApplicationRootDirectoryPermissions" />',
+      );
+
+      // Files + Shortcut + InstallLocation + Permissions
+      const count = wxsContent.split('</Component>').length - 1;
+      const refCount = wxsContent.split('<ComponentRef').length - 1;
+      expect(count).to.deep.equal(numberOfFiles + 3);
+      expect(count).to.deep.equal(refCount);
+    });
+
+    it('restricts permissions on every installed file', async function () {
+      const msiCreator = new MSICreator(defaultOptions);
+      const { wxsFile } = await msiCreator.create();
+      const wxsContent = await fs.readFile(wxsFile, 'utf-8');
+      const singleLineWxContent = wxsContent.replace(/\s\s+/g, ' ');
+
+      // MSI overwrites the contents of a pre-existing file but leaves its DACL
+      // alone, so the permissions have to be set on the files themselves and
+      // not just on the directory that contains them.
+      const filesWithPermissions = singleLineWxContent.match(
+        /<File [^>]*> <Permission User="Administrators" GenericAll="yes"\/> <Permission User="SYSTEM" GenericAll="yes"\/> <Permission User="Everyone" GenericRead="yes" GenericExecute="yes"\/> <\/File>/g,
+      );
+
+      expect(filesWithPermissions).to.have.lengthOf(numberOfFiles);
     });
 
     it('sets the appUserModelId', async function () {
