@@ -7,9 +7,11 @@ name: Bump packages
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ['Check and Test']
+    branches: [main]
+    types:
+      - completed
 
 permissions:
   contents: none # we use the github app's token to checkout and push
@@ -56,4 +58,4 @@ jobs:
           npm run bump-packages
           git add .
           git commit --no-allow-empty -m "chore(ci): bump packages" || true
-          git push
+          git push origin HEAD:main
