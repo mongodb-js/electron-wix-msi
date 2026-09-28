@@ -61,9 +61,7 @@ jobs:
         run: npm ci
 
       - name: Publish to npm
-        run: |
-          git update-index --assume-unchanged .npmrc
-          npm publish
+        run: npm publish
 
       - name: Publish tag
         run: |
